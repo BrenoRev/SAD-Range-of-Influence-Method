@@ -5,6 +5,10 @@ from pydantic import BaseModel, Field, model_validator
 CriterionKind = Literal["benefit", "cost", "target"]
 
 
+class HealthResponse(BaseModel):
+    status: Literal["ok"]
+
+
 class Criterion(BaseModel):
     name: str = Field(min_length=1)
     kind: CriterionKind

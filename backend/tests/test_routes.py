@@ -12,6 +12,12 @@ def test_health():
     assert r.json() == {"status": "ok"}
 
 
+def test_api_health():
+    r = client.get("/api/health")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok"}
+
+
 def test_list_cases_not_empty():
     r = client.get("/api/cases")
     assert r.status_code == 200
