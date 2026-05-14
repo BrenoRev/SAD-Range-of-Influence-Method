@@ -1,0 +1,85 @@
+name: Deploy to rim.brenodev.software
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script_stop: true
+          command_timeout: 12m
+          script: |
+            set -e
+            cd /var/www/rim
+
+            echo "==> git status"
+            if ! git diff --quiet || ! git diff --cached --quiet; then
+              echo "ERRO: working tree sujo no servidor. Abortando."
+              git status
+              exit 1
+            fi
+
+            BEFORE_BACKEND=$(sha256sum backend/pyproject.toml | awk '{print $1}')
+            BEFORE_FRONT_PKG=$(sha256sum frontend/package.json | awk '{print $1}')
+            BEFORE_FRONT_LOCK=$(sha256sum frontend/pnpm-lock.yaml | awk '{print $1}')
+
+            echo "==> git fetch + reset --hard origin/main"
+            git fetch origin main
+            git reset --hard origin/main
+
+            AFTER_BACKEND=$(sha256sum backend/pyproject.toml | awk '{print $1}')
+            AFTER_FRONT_PKG=$(sha256sum frontend/package.json | awk '{print $1}')
+            AFTER_FRONT_LOCK=$(sha256sum frontend/pnpm-lock.yaml | awk '{print $1}')
+
+            echo "==> backend"
+            cd backend
+            if [ "$BEFORE_BACKEND" != "$AFTER_BACKEND" ]; then
+              echo "pyproject.toml mudou - reinstalando dependencias"
+              source .venv/bin/activate
+              pip install -e .
+              deactivate
+            else
+              echo "pyproject.toml inalterado - skip pip install"
+            fi
+            cd ..
+
+            echo "==> frontend"
+            cd frontend
+            if [ "$BEFORE_FRONT_PKG" != "$AFTER_FRONT_PKG" ] || [ "$BEFORE_FRONT_LOCK" != "$AFTER_FRONT_LOCK" ]; then
+              echo "deps do frontend mudaram - pnpm install"
+              pnpm install --frozen-lockfile
+            else
+              echo "deps do frontend inalteradas - skip pnpm install"
+            fi
+            pnpm run build
+            cd ..
+
+            echo "==> pm2 restart rim-backend"
+            pm2 restart rim-backend --update-env
+
+            echo "==> smoke tests"
+            sleep 2
+            curl -sf http://127.0.0.1:8001/health > /dev/null
+            curl -sf http://127.0.0.1:8001/api/health > /dev/null
+            curl -sf http://127.0.0.1:8001/api/cases > /dev/null
+
+            echo "==> deploy ok"
+            pm2 ls
