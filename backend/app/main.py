@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
 
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://rim.brenodev.software",
+]
+
 app = FastAPI(
     title="RIM API",
     version="0.1.0",
@@ -11,7 +16,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
