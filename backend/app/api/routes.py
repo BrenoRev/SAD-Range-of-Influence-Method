@@ -6,12 +6,18 @@ from app.rim.schemas import (
     CaseSummary,
     DecisionInput,
     DecisionResult,
+    HealthResponse,
     SensitivityRequest,
     SensitivityResult,
 )
 from app.rim.solver import sensitivity, solve
 
 router = APIRouter(prefix="/api")
+
+
+@router.get("/health", response_model=HealthResponse)
+def get_health() -> HealthResponse:
+    return HealthResponse(status="ok")
 
 
 @router.post("/rim/solve", response_model=DecisionResult)
