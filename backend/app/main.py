@@ -5,6 +5,7 @@ from app.api.routes import router
 
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://rim.brenodev.software",
 ]
 
 app = FastAPI(
