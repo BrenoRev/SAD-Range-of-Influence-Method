@@ -17,7 +17,7 @@ export function Step3Weights() {
   const sum = weights.reduce((s, w) => s + Math.max(0, w), 0);
   const normalizedPct = (i: number): number => {
     if (sum <= 0) return 0;
-    return ((Math.max(0, weights[i] ?? 0)) / sum) * 100;
+    return (Math.max(0, weights[i] ?? 0) / sum) * 100;
   };
 
   const setOne = (i: number, v: number) => {
@@ -42,13 +42,13 @@ export function Step3Weights() {
           title="Quanto cada critério importa?"
           subtitle="Arraste os controles para definir a importância relativa. Os valores serão normalizados para somar 100%."
           right={
-            <Button variant="ghost" onClick={resetEqual}>
+            <Button variant="ghost" onClick={resetEqual} data-tour="weights-equal">
               <RotateCcw size={14} strokeWidth={1.5} /> Pesos iguais
             </Button>
           }
         />
 
-        <Card className="p-5">
+        <Card className="p-5" data-tour="weights-sliders">
           <div className="space-y-5">
             {criteria.map((c, i) => (
               <WeightSlider
@@ -67,7 +67,9 @@ export function Step3Weights() {
           <span className="font-mono text-ink">{sum.toFixed(0)}</span> · Normalizada para 100%.
         </div>
 
-        <WeightsStackBar criteria={criteria} normalizedPcts={normalizedPcts} />
+        <div data-tour="weights-bar">
+          <WeightsStackBar criteria={criteria} normalizedPcts={normalizedPcts} />
+        </div>
       </div>
     </WizardLayout>
   );

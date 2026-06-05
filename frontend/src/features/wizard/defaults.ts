@@ -47,10 +47,9 @@ export function step1Valid(alternatives: string[]): { ok: boolean; reason?: stri
 }
 
 export function step2Valid(criteria: Criterion[]): { ok: boolean; reason?: string } {
-  if (criteria.length < 1) return { ok: false, reason: "Adicione pelo menos um critério." };
+  if (criteria.length < 2) return { ok: false, reason: "Adicione pelo menos 2 critérios." };
   const names = criteria.map((c) => c.name.trim());
-  if (names.some((n) => !n))
-    return { ok: false, reason: "Todo critério precisa de um nome." };
+  if (names.some((n) => !n)) return { ok: false, reason: "Todo critério precisa de um nome." };
   const lower = names.map((n) => n.toLowerCase());
   if (new Set(lower).size !== lower.length)
     return { ok: false, reason: "Os nomes dos critérios devem ser únicos." };

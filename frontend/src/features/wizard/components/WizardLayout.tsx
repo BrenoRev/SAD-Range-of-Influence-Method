@@ -3,17 +3,19 @@ import { AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/shared/components/ui/Button";
 import { HelpButton } from "@/shared/components/ui/HelpButton";
 import { Tooltip } from "@/shared/components/ui/Tooltip";
+import { useToast } from "@/shared/components/ui/Toast";
 import { Wordmark } from "@/shared/components/ui/Wordmark";
 import { cn } from "@/shared/lib/utils";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useWizard } from "../context";
+import { TourButton } from "../tour/TourButton";
 import { SavedIndicator } from "./SavedIndicator";
 import { Stepper } from "./Stepper";
 
 const STEPS = [
   { i: 1, name: "Alternativas" },
   { i: 2, name: "Critérios" },
-  { i: 3, name: "Pesos" },
+  { i: 3, name: "Pesos", optional: true },
   { i: 4, name: "Resultado" },
 ];
 
@@ -33,7 +35,12 @@ export function WizardLayout({
   children,
 }: WizardLayoutProps) {
   const navigate = useNavigate();
-  const { maxReached, saved, setMaxReached } = useWizard();
+  const toast = useToast();
+  const { maxReached, saved, setMaxReached, revealErrors, clearErrors } = useWizard();
+
+  useEffect(() => {
+    clearErrors();
+  }, [step, clearErrors]);
 
   const onJump = (i: number) => {
     if (i <= maxReached) navigate(`/wizard/${i}`);
@@ -47,10 +54,14 @@ export function WizardLayout({
     navigate(`/wizard/${step - 1}`);
   };
 
-  const handleNext = () => {
-    if (!canContinue) return;
-    setMaxReached(step + 1);
-    onNext();
+  const onContinue = () => {
+    if (canContinue) {
+      setMaxReached(step + 1);
+      onNext();
+      return;
+    }
+    if (blockingReason) toast(blockingReason, "danger");
+    revealErrors();
   };
 
   return (
@@ -68,6 +79,7 @@ export function WizardLayout({
           <div className="flex items-center gap-2">
             <SavedIndicator saved={saved} />
             <span className="mx-1 h-4 w-px bg-line" aria-hidden />
+            <TourButton />
             <HelpButton />
           </div>
         </div>
@@ -107,7 +119,7 @@ export function WizardLayout({
                 }
               >
                 <span>
-                  <Button onClick={handleNext} disabled={!canContinue}>
+                  <Button onClick={onContinue} aria-disabled={!canContinue}>
                     Continuar <ArrowRight size={14} strokeWidth={1.5} />
                   </Button>
                 </span>

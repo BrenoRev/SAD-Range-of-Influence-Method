@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, GripVertical, Info, Plus, Trash2 } from "lucide-react";
 import { Banner } from "@/shared/components/ui/Banner";
@@ -25,10 +26,20 @@ function findDuplicateIndexes(alternatives: string[]): Set<number> {
 
 export function Step1Alternatives() {
   const navigate = useNavigate();
-  const { alternatives, setAlternatives } = useWizard();
+  const { alternatives, setAlternatives, errorTick } = useWizard();
   const validation = step1Valid(alternatives);
   const dupIndexes = findDuplicateIndexes(alternatives);
   const namedCount = alternatives.filter((a) => a.trim()).length;
+  const showErrors = errorTick > 0;
+
+  useEffect(() => {
+    if (errorTick === 0) return;
+    const el = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (el) {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.focus({ preventScroll: true });
+    }
+  }, [errorTick]);
 
   const update = (i: number, v: string) => {
     const next = alternatives.slice();
@@ -81,7 +92,9 @@ export function Step1Alternatives() {
 
         <ol className="space-y-2">
           {alternatives.map((name, i) => {
-            const invalid = dupIndexes.has(i);
+            const isDup = dupIndexes.has(i);
+            const isEmpty = showErrors && !name.trim();
+            const invalid = isDup || isEmpty;
             return (
               <li key={i}>
                 <div className="group flex items-center gap-2">
@@ -127,7 +140,7 @@ export function Step1Alternatives() {
                     className="shrink-0 text-muted/60"
                     aria-hidden
                   />
-                  <div className="flex-1">
+                  <div className="flex-1" data-tour={`alt-${i}`}>
                     <Input
                       value={name}
                       placeholder={`Nome da opção ${i + 1}`}
@@ -147,7 +160,10 @@ export function Step1Alternatives() {
                 </div>
                 {invalid ? (
                   <div className="ml-12 mt-1 flex items-center gap-1.5 text-[12px] text-danger">
-                    <AlertCircle size={12} strokeWidth={1.5} /> Os nomes devem ser únicos.
+                    <AlertCircle size={12} strokeWidth={1.5} />{" "}
+                    {isDup
+                      ? "Os nomes devem ser únicos."
+                      : "Informe um nome para esta alternativa."}
                   </div>
                 ) : null}
               </li>
@@ -155,7 +171,7 @@ export function Step1Alternatives() {
           })}
         </ol>
 
-        <div className="mt-3">
+        <div className="mt-3" data-tour="alts-add">
           <Button variant="ghost" onClick={add}>
             <Plus size={14} strokeWidth={1.5} /> Adicionar alternativa
           </Button>

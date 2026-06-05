@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Info, Plus } from "lucide-react";
 import { Button } from "@/shared/components/ui/Button";
@@ -12,8 +13,18 @@ import type { Criterion } from "../schemas";
 
 export function Step2Criteria() {
   const navigate = useNavigate();
-  const { criteria, setCriteria } = useWizard();
+  const { criteria, setCriteria, errorTick } = useWizard();
   const validation = step2Valid(criteria);
+  const showErrors = errorTick > 0;
+
+  useEffect(() => {
+    if (errorTick === 0) return;
+    const el = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (el) {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.focus({ preventScroll: true });
+    }
+  }, [errorTick]);
 
   const update = (i: number, patch: Partial<Criterion>) => {
     const next = criteria.slice();
@@ -44,7 +55,10 @@ export function Step2Criteria() {
 
         <div className="space-y-6">
           <div>
-            <div className="overflow-x-auto rounded-xl border border-line bg-white">
+            <div
+              className="overflow-x-auto rounded-xl border border-line bg-white"
+              data-tour="crit-table"
+            >
               <table className="w-full table-fixed text-[14px]">
                 <thead>
                   <tr className="border-b border-line text-left text-muted">
@@ -83,6 +97,7 @@ export function Step2Criteria() {
                       index={i}
                       criterion={c}
                       canRemove={criteria.length > 1}
+                      nameInvalid={showErrors && !c.name.trim()}
                       onUpdate={(patch) => update(i, patch)}
                       onRemove={() => remove(i)}
                     />
@@ -90,16 +105,17 @@ export function Step2Criteria() {
                 </tbody>
               </table>
             </div>
-            <div className="mt-3">
+            <div className="mt-3" data-tour="crit-add">
               <Button variant="ghost" onClick={add}>
                 <Plus size={14} strokeWidth={1.5} /> Adicionar critério
               </Button>
             </div>
           </div>
 
-          <CriteriaHelpCard />
+          <div data-tour="crit-help">
+            <CriteriaHelpCard />
+          </div>
         </div>
-
       </div>
     </WizardLayout>
   );

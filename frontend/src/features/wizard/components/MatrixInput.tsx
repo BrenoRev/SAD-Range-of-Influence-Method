@@ -24,13 +24,7 @@ function cellInvalid(value: number, A: number, B: number): boolean {
   return value < A || value > B;
 }
 
-export function MatrixInput({
-  alternatives,
-  criteria,
-  X,
-  onCell,
-  onCompute,
-}: MatrixInputProps) {
+export function MatrixInput({ alternatives, criteria, X, onCell, onCompute }: MatrixInputProps) {
   const total = alternatives.length * criteria.length;
   let filled = 0;
   let outOfRange = false;
@@ -50,13 +44,7 @@ export function MatrixInput({
     <div>
       <Banner
         tone={ready ? "accent" : outOfRange ? "danger" : "info"}
-        icon={
-          ready ? (
-            <Check size={16} strokeWidth={1.5} />
-          ) : (
-            <Info size={16} strokeWidth={1.5} />
-          )
-        }
+        icon={ready ? <Check size={16} strokeWidth={1.5} /> : <Info size={16} strokeWidth={1.5} />}
         className="mb-5"
       >
         {ready ? (
@@ -72,7 +60,7 @@ export function MatrixInput({
         )}
       </Banner>
 
-      <Card className="overflow-x-auto">
+      <Card className="overflow-x-auto" data-tour="matrix-table">
         <table className="w-full text-[13px]">
           <thead>
             <tr className="border-b border-line text-left text-muted">
@@ -96,8 +84,7 @@ export function MatrixInput({
                   const cellValue = row ? row[j] : Number.NaN;
                   const display =
                     cellValue !== undefined && Number.isFinite(cellValue) ? String(cellValue) : "";
-                  const invalid =
-                    cellValue !== undefined && cellInvalid(cellValue, c.A, c.B);
+                  const invalid = cellValue !== undefined && cellInvalid(cellValue, c.A, c.B);
                   return (
                     <td key={j} className="px-3 py-2">
                       <Input
@@ -122,7 +109,7 @@ export function MatrixInput({
             Faltam <span className="font-mono text-ink">{total - filled}</span> valor(es).
           </span>
         ) : null}
-        <Button onClick={onCompute} disabled={!ready}>
+        <Button onClick={onCompute} disabled={!ready} data-tour="matrix-compute">
           Calcular classificação <ArrowRight size={14} strokeWidth={1.5} />
         </Button>
       </div>

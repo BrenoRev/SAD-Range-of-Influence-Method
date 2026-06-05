@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
-type StepDef = { i: number; name: string };
+type StepDef = { i: number; name: string; optional?: boolean };
 
 type StepperProps = {
   steps: StepDef[];
@@ -40,10 +40,7 @@ export function Stepper({ steps, current, maxReached, onJump }: StepperProps) {
                 {status === "done" ? <Check size={12} strokeWidth={1.5} /> : s.i}
               </button>
               <div
-                className={cn(
-                  "h-px flex-1 bg-line",
-                  idx === steps.length - 1 ? "invisible" : "",
-                )}
+                className={cn("h-px flex-1 bg-line", idx === steps.length - 1 ? "invisible" : "")}
                 aria-hidden
               />
             </div>
@@ -55,6 +52,11 @@ export function Stepper({ steps, current, maxReached, onJump }: StepperProps) {
             >
               {s.name}
             </span>
+            {s.optional ? (
+              <span className="mt-1 rounded-full border border-line bg-white px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-muted">
+                Opcional
+              </span>
+            ) : null}
           </li>
         );
       })}
