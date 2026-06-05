@@ -17,6 +17,8 @@ router = APIRouter(prefix="/api")
 
 @router.get("/health", response_model=HealthResponse)
 def get_health() -> HealthResponse:
+    # Healthcheck tipado sob /api, espelhando o /health cru de infra do main.py.
+    # Mesmo corpo {"status": "ok"}, mas aqui validado pelo response_model.
     return HealthResponse(status="ok")
 
 
@@ -40,4 +42,6 @@ def get_case(case_id: str) -> CaseDetail:
     try:
         return cases.get_case(case_id)
     except KeyError:
+        # cases.get_case sinaliza caso inexistente com KeyError; aqui ele vira
+        # a resposta HTTP apropriada (404 Not Found).
         raise HTTPException(status_code=404, detail=f"Case '{case_id}' não encontrado")

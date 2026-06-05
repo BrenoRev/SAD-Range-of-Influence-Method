@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
 
+# Origens liberadas no CORS: o front rodando local no Vite (porta 5173) e o
+# domínio de produção. allow_credentials fica False porque a API é stateless —
+# não há cookies nem sessão para carregar entre requests.
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://rim.brenodev.software",
@@ -27,4 +30,7 @@ app.include_router(router)
 
 @app.get("/health")
 def health() -> dict[str, str]:
+    # Healthcheck cru de infra, fora do prefixo /api, para load balancer e
+    # monitor baterem sem depender do roteador da aplicação. O par tipado vive
+    # em /api/health (routes.py).
     return {"status": "ok"}

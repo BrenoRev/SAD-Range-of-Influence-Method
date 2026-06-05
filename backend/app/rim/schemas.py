@@ -19,6 +19,9 @@ class Criterion(BaseModel):
 
     @model_validator(mode="after")
     def check_order(self):
+        # A ≤ C ≤ D ≤ B garante que o intervalo ideal [C, D] (a faixa-alvo do
+        # decisor) está contido no domínio [A, B] do critério. Sem essa ordem o
+        # método não tem como medir distância à faixa ideal.
         if not (self.A <= self.C <= self.D <= self.B):
             raise ValueError(f"Critério '{self.name}': é necessário A ≤ C ≤ D ≤ B")
         return self
@@ -32,15 +35,45 @@ class DecisionInput(BaseModel):
 
     @model_validator(mode="after")
     def check_dimensions(self):
-        m, n = len(self.alternatives), len(self.criteria)
+        # A ordem das checagens importa: só validamos o domínio de cada X[i][j]
+        # depois de confirmar que a matriz tem o formato m×n. Caso contrário,
+        # indexar self.criteria[j] com uma linha mais larga que n estouraria um
+        # IndexError (HTTP 500) em vez do 422 que o usuário deve receber.
+        n = len(self.criteria)
+        m = len(self.alternatives)
+        self._validar_tamanho_dos_pesos(n)
+        self._validar_pesos_como_distribuicao()
+        self._validar_formato_da_matriz(m, n)
+        self._validar_X_no_dominio()
+        return self
+
+    def _validar_tamanho_dos_pesos(self, n: int) -> None:
+        # Um peso por critério: a cardinalidade tem de bater antes de qualquer
+        # operação posicional entre pesos e critérios.
         if len(self.weights) != n:
             raise ValueError("weights deve ter o mesmo tamanho de criteria")
+
+    def _validar_pesos_como_distribuicao(self) -> None:
+        # Os pesos formam uma distribuição: somam 1 e são não-negativos.
+        # Conferimos a soma antes do sinal para reproduzir a ordem original dos
+        # if. Não normalizamos aqui de propósito — um vetor de pesos malformado
+        # é erro de entrada (422), não algo que o servidor deva "consertar"
+        # silenciosamente.
         if abs(sum(self.weights) - 1.0) > 1e-6:
             raise ValueError("weights deve somar 1 (tol 1e-6)")
         if any(w < 0 for w in self.weights):
             raise ValueError("weights não podem ser negativos")
+
+    def _validar_formato_da_matriz(self, m: int, n: int) -> None:
+        # X é a matriz de decisão m×n (alternativas nas linhas, critérios nas
+        # colunas). Precisa ter exatamente essas dimensões.
         if len(self.X) != m or any(len(row) != n for row in self.X):
             raise ValueError(f"X deve ser {m}x{n}")
+
+    def _validar_X_no_dominio(self) -> None:
+        # Cada avaliação X[i][j] tem de cair no domínio [A, B] do seu critério.
+        # Esse domínio é fixado a priori pelo decisor (não derivado da amostra),
+        # o que é justamente a fonte da imunidade do RIM ao rank reversal.
         for i, row in enumerate(self.X):
             for j, x in enumerate(row):
                 A, B = self.criteria[j].A, self.criteria[j].B
@@ -49,7 +82,6 @@ class DecisionInput(BaseModel):
                         f"X[{i}][{j}]={x} fora do domínio "
                         f"[{A}, {B}] do critério '{self.criteria[j].name}'"
                     )
-        return self
 
 
 class RankingEntry(BaseModel):
