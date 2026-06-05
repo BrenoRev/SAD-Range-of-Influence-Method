@@ -8,7 +8,7 @@ import { exportCSV, exportPDF } from "@/shared/lib/export";
 import type { components } from "@/shared/types/api";
 import { useSolve } from "../api/useSolve";
 import { useWizard } from "../context";
-import { normalizeWeights } from "../defaults";
+import { normalizeWeights, step1Valid, step2Valid } from "../defaults";
 import { MatrixInput } from "../components/MatrixInput";
 import { RankingChart } from "../components/RankingChart";
 import { RankingPodium } from "../components/RankingPodium";
@@ -30,16 +30,8 @@ function inRange(value: number, min: number, max: number): boolean {
 export function Step4Result() {
   const navigate = useNavigate();
   const toast = useToast();
-  const {
-    alternatives,
-    criteria,
-    weights,
-    X,
-    hasComputed,
-    setHasComputed,
-    setCell,
-    setWeights,
-  } = useWizard();
+  const { alternatives, criteria, weights, X, hasComputed, setHasComputed, setCell, setWeights } =
+    useWizard();
   const { data: result, error, solve } = useSolve();
 
   const [recalcSpin, setRecalcSpin] = useState(false);
@@ -108,6 +100,18 @@ export function Step4Result() {
   }, [normalizedWeights, hasComputed, triggerSolve]);
 
   const onCompute = () => {
+    const altCheck = step1Valid(alternatives);
+    if (!altCheck.ok) {
+      toast(altCheck.reason ?? "Alternativas inválidas.", "danger");
+      navigate("/wizard/1");
+      return;
+    }
+    const critCheck = step2Valid(criteria);
+    if (!critCheck.ok) {
+      toast(critCheck.reason ?? "Critérios inválidos.", "danger");
+      navigate("/wizard/2");
+      return;
+    }
     if (!xIsValid) {
       toast("Preencha todos os valores dentro das faixas para calcular.", "danger");
       return;
@@ -145,11 +149,7 @@ export function Step4Result() {
 
   if (!hasComputed) {
     return (
-      <WizardLayout
-        step={4}
-        canContinue
-        onNext={() => navigate("/")}
-      >
+      <WizardLayout step={4} canContinue onNext={() => navigate("/")}>
         <div>
           <StepHeader
             title="Informe os valores"
@@ -234,7 +234,7 @@ function ResultSection({
             Com base nos critérios e pesos que você definiu.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="result-export">
           <Button variant="outline" size="sm" onClick={onExportCSV} disabled={!result}>
             <Download size={14} strokeWidth={1.5} /> Exportar CSV
           </Button>
@@ -253,7 +253,7 @@ function ResultSection({
       ) : null}
 
       {winnerName !== undefined && winnerR !== undefined ? (
-        <div className="mt-6">
+        <div className="mt-6" data-tour="result-winner">
           <Banner
             tone="info"
             icon={<Trophy size={16} strokeWidth={1.5} className="text-ok" />}
@@ -263,38 +263,43 @@ function ResultSection({
               <span className="font-medium">{winnerName}</span> lidera com R&nbsp;=&nbsp;
               <span className="font-mono">{winnerR.toFixed(4)}</span>.
             </span>{" "}
-            Ajuste os pesos no painel{" "}
-            <span className="font-medium text-ink">Sensibilidade</span> para testar como o
-            ranking reage.
+            Ajuste os pesos no painel <span className="font-medium text-ink">Sensibilidade</span>{" "}
+            para testar como o ranking reage.
           </Banner>
         </div>
       ) : null}
 
       {result ? (
         <>
-          <div className="mt-6">
+          <div className="mt-6" data-tour="result-podium">
             <RankingPodium ranking={result.ranking} />
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
             <div className="space-y-8">
-              <RankingTable
-                ranking={result.ranking}
-                criteria={criteria}
-                Y={result.Y}
-                alternatives={alternatives}
-              />
-              <RankingChart ranking={result.ranking} />
+              <div data-tour="result-table">
+                <RankingTable
+                  ranking={result.ranking}
+                  criteria={criteria}
+                  Y={result.Y}
+                  alternatives={alternatives}
+                />
+              </div>
+              <div data-tour="result-chart">
+                <RankingChart ranking={result.ranking} />
+              </div>
             </div>
-            <SensitivityPanel
-              criteria={criteria}
-              weights={weights}
-              ranking={result.ranking}
-              alternatives={alternatives}
-              baseInput={baseInput}
-              recalcSpin={recalcSpin}
-              onChangeWeight={onChangeSensitivityWeight}
-            />
+            <div data-tour="result-sensitivity">
+              <SensitivityPanel
+                criteria={criteria}
+                weights={weights}
+                ranking={result.ranking}
+                alternatives={alternatives}
+                baseInput={baseInput}
+                recalcSpin={recalcSpin}
+                onChangeWeight={onChangeSensitivityWeight}
+              />
+            </div>
           </div>
         </>
       ) : !error ? (

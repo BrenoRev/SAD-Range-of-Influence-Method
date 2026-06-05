@@ -37,6 +37,9 @@ type WizardContextValue = WizardState & {
   saved: boolean;
   hasSavedSnapshot: boolean;
   resumeSaved: () => boolean;
+  errorTick: number;
+  revealErrors: () => void;
+  clearErrors: () => void;
 };
 
 const STORAGE_KEY = "rim:lastDecision";
@@ -46,11 +49,11 @@ const WizardCtx = createContext<WizardContextValue | null>(null);
 function blankState(): WizardState {
   return {
     alternatives: ["", ""],
-    criteria: [blankCriterion()],
-    weights: [50],
+    criteria: [blankCriterion(), blankCriterion()],
+    weights: [50, 50],
     X: [
-      [Number.NaN],
-      [Number.NaN],
+      [Number.NaN, Number.NaN],
+      [Number.NaN, Number.NaN],
     ],
     hasComputed: false,
     maxReached: 1,
@@ -84,7 +87,11 @@ export function WizardProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WizardState>(() => blankState());
   const [saved, setSaved] = useState(true);
   const [hasSavedSnapshot, setHasSavedSnapshot] = useState(false);
+  const [errorTick, setErrorTick] = useState(0);
   const firstRender = useRef(true);
+
+  const revealErrors = useCallback(() => setErrorTick((t) => t + 1), []);
+  const clearErrors = useCallback(() => setErrorTick(0), []);
 
   useEffect(() => {
     const parsed = readJson<WizardState>(STORAGE_KEY);
@@ -210,6 +217,9 @@ export function WizardProvider({ children }: { children: ReactNode }) {
       saved,
       hasSavedSnapshot,
       resumeSaved,
+      errorTick,
+      revealErrors,
+      clearErrors,
     }),
     [
       state,
@@ -225,6 +235,9 @@ export function WizardProvider({ children }: { children: ReactNode }) {
       saved,
       hasSavedSnapshot,
       resumeSaved,
+      errorTick,
+      revealErrors,
+      clearErrors,
     ],
   );
 

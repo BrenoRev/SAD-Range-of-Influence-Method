@@ -1,5 +1,9 @@
 from .schemas import CaseDetail, CaseSummary, Criterion, DecisionInput
 
+# Casos pré-carregados. Onde um critério tem faixa-alvo (C, D no interior do
+# domínio, em vez de colado num extremo) é justamente onde o RIM supera o
+# TOPSIS, que só sabe lidar com benefício/custo puros.
+
 CASE_NOTEBOOK = CaseDetail(
     id="notebook",
     title="Seleção de notebook",
@@ -78,12 +82,16 @@ _CASES: dict[str, CaseDetail] = {
 }
 
 
+def _resumo(c: CaseDetail) -> CaseSummary:
+    # Projeta um caso completo nos seus metadados. A listagem expõe só o resumo;
+    # o DecisionInput inteiro só sai no endpoint de detalhe.
+    return CaseSummary(id=c.id, title=c.title, description=c.description, source=c.source)
+
+
 def list_cases() -> list[CaseSummary]:
-    return [
-        CaseSummary(id=c.id, title=c.title, description=c.description, source=c.source)
-        for c in _CASES.values()
-    ]
+    return [_resumo(c) for c in _CASES.values()]
 
 
 def get_case(case_id: str) -> CaseDetail:
-    return _CASES[case_id]  # KeyError vira 404 em routes.py
+    # KeyError proposital: a rota o traduz em 404 para caso inexistente.
+    return _CASES[case_id]

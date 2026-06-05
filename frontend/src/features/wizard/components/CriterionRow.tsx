@@ -11,6 +11,7 @@ type CriterionRowProps = {
   index: number;
   criterion: Criterion;
   canRemove: boolean;
+  nameInvalid?: boolean;
   onUpdate: (patch: Partial<Criterion>) => void;
   onRemove: () => void;
 };
@@ -32,15 +33,17 @@ function NumCell({
   onChange,
   invalid,
   err,
+  tourId,
 }: {
   value: number;
   onChange: (v: number) => void;
   invalid: boolean;
   err?: string;
+  tourId?: string;
 }) {
   const display = Number.isFinite(value) ? String(value) : "";
   return (
-    <td className="px-4 py-3">
+    <td className="px-4 py-3" data-tour={tourId}>
       {err ? (
         <Tooltip content={err}>
           <span className="inline-block w-full">
@@ -70,6 +73,7 @@ export function CriterionRow({
   index,
   criterion,
   canRemove,
+  nameInvalid,
   onUpdate,
   onRemove,
 }: CriterionRowProps) {
@@ -102,9 +106,10 @@ export function CriterionRow({
           value={criterion.name}
           placeholder={`ex.: Critério ${index + 1}`}
           onChange={(e) => onUpdate({ name: e.target.value })}
+          invalid={nameInvalid}
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3" data-tour={index === 0 ? "crit-type" : undefined}>
         <Select
           value={criterion.kind}
           onChange={(e) => onKindChange(e.target.value as CriterionKind)}
@@ -116,6 +121,7 @@ export function CriterionRow({
         invalid={!!errors.A}
         err={errors.A}
         onChange={(v) => onRangeChange("A", v)}
+        tourId={index === 0 ? "crit-A" : undefined}
       />
       <NumCell
         value={criterion.B}
@@ -128,6 +134,7 @@ export function CriterionRow({
         invalid={!!errors.C}
         err={errors.C}
         onChange={(v) => onUpdate({ C: v })}
+        tourId={index === 0 ? "crit-C" : undefined}
       />
       <NumCell
         value={criterion.D}
