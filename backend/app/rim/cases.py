@@ -5,18 +5,21 @@ from .schemas import CaseDetail, CaseSummary, Criterion, DecisionInput
 # TOPSIS, que só sabe lidar com benefício/custo puros.
 
 # Réplica fiel do exemplo numérico do artigo original do RIM (seleção de 1 entre
-# 5 candidatos a motorista, 6 critérios). Os números (X, weights, A/B/C/D) vêm das
-# Tables 2-4 do artigo (idênticos ao pacote de referência MCDM::RIM) — NÃO são
-# inventados. Nomes de C1 e C3–C6 são provisórios (papel matemático do critério);
-# só C2 ("Years of experience") consta do enunciado.
+# 5 candidatos a motorista, 6 critérios). TODOS os dados (nomes dos critérios, X,
+# weights, A/B/C/D) vêm das Tables 2-3 do artigo (idênticos ao pacote de
+# referência MCDM::RIM) — NÃO são inventados. Os critérios C4/C5/C6 do paper são
+# rótulos linguísticos mapeados em valores crisp "melhor→pior": C4/C5 = {3,2,1},
+# C6 = {5,4,3,2,1}; o ideal de C6 é "Alta, normal alta" => [4,5].
 #
-# IMPORTANTE — divergência com o ranking IMPRESSO no paper:
+# IMPORTANTE — divergência com o ranking IMPRESSO no paper (CONFIRMADO na fonte
+# primária, ver docs/relatorio-gestao-rim.md):
 # Aplicando corretamente as equações do artigo (Step 5/6: I- = sqrt(Σ y'²)), o
 # ranking é A2 > A5 > A1 > A4 > A3 (R: 0.7558, 0.7401, 0.5866, 0.4666, 0.3716).
-# Esse é o resultado correto e o que o MCDM::RIM produz. A Table 6/11 do paper
-# imprime A1 > A2 > A5 > A4 > A3 porque omitiu a raiz quadrada do I- nas linhas
-# B/C/D/E (lá o I- é o Σ y'² sem raiz; só a linha A teve a raiz aplicada — a
-# própria Table 7 mostra A calculado certo). Mantemos a matemática correta.
+# Esse é o resultado correto, o que o MCDM/RMCDA/pymcdm produzem. A Table 6 do
+# paper IMPRIME o I- de B/C/D/E SEM a raiz (são exatamente os Σ y'² ao quadrado:
+# 0.12132/0.03554/0.05926/0.11819 = nossos I-²); só a linha A tem a raiz (Table 7
+# mostra I-_A=0.32823, correto). Daí o paper publica A > B > E > D > C. Mantemos a
+# matemática correta.
 CASE_ARTICLE = CaseDetail(
     id="article-replication",
     title="Réplica do artigo (Cables et al. 2016)",
@@ -29,12 +32,12 @@ CASE_ARTICLE = CaseDetail(
     input=DecisionInput(
         alternatives=["A1", "A2", "A3", "A4", "A5"],
         criteria=[
-            Criterion(name="Critério 1 (faixa-alvo 30–35)", kind="target", A=23, B=60, C=30, D=35),
+            Criterion(name="Idade (faixa-alvo 30–35)", kind="target", A=23, B=60, C=30, D=35),
             Criterion(name="Anos de experiência", kind="target", A=0, B=15, C=10, D=15),
-            Criterion(name="Critério 3 (minimizar)", kind="cost", A=0, B=10, C=0, D=0),
-            Criterion(name="Critério 4 (benefício 1–3)", kind="benefit", A=1, B=3, C=3, D=3),
-            Criterion(name="Critério 5 (benefício 1–3)", kind="benefit", A=1, B=3, C=3, D=3),
-            Criterion(name="Critério 6 (faixa-alvo 4–5)", kind="target", A=1, B=5, C=4, D=5),
+            Criterion(name="Quantidade de sanções", kind="cost", A=0, B=10, C=0, D=0),
+            Criterion(name="Conhecimento de mecânica (Bom/Regular/Ruim)", kind="benefit", A=1, B=3, C=3, D=3),
+            Criterion(name="Limitações físicas (Nenhuma/Parcial/Total)", kind="benefit", A=1, B=3, C=3, D=3),
+            Criterion(name="Estabilidade emocional (Alta→Baixa)", kind="target", A=1, B=5, C=4, D=5),
         ],
         weights=[0.2262, 0.2143, 0.1786, 0.1429, 0.119, 0.119],
         X=[
