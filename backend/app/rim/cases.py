@@ -4,30 +4,39 @@ from .schemas import CaseDetail, CaseSummary, Criterion, DecisionInput
 # domínio, em vez de colado num extremo) é justamente onde o RIM supera o
 # TOPSIS, que só sabe lidar com benefício/custo puros.
 
-CASE_NOTEBOOK = CaseDetail(
-    id="notebook",
-    title="Seleção de notebook",
+# Réplica fiel do exemplo numérico do artigo original do RIM (seleção de 1 entre
+# 5 candidatos a motorista, 6 critérios). Os números (X, weights, A/B/C/D) vêm da
+# implementação de referência do paper (pacote R MCDM::RIM) — NÃO são inventados.
+# Validado: ranking publicado A2 > A5 > A1 > A4 > A3 (ver tests/test_algorithm.py).
+# Nomes de C1 e C3–C6 são provisórios (descrevem só o papel matemático do
+# critério); apenas C2 ("Years of experience") consta do enunciado. Substituir
+# pelos nomes exatos do artigo quando o PDF confirmar.
+CASE_ARTICLE = CaseDetail(
+    id="article-replication",
+    title="Réplica do artigo (Cables et al. 2016)",
     description=(
-        "Escolha entre 4 notebooks considerando preço, desempenho, peso e "
-        "autonomia. Os critérios 'peso' e 'autonomia' têm faixa-alvo "
-        "(intermediário ideal), o que demonstra a principal vantagem do RIM "
-        "sobre o TOPSIS."
+        "Exemplo numérico do artigo original do RIM: seleção de 1 entre 5 "
+        "candidatos a motorista em 6 critérios. Reproduz o ranking publicado e "
+        "permite verificar a implementação contra os resultados do paper."
     ),
-    source="Exemplo didático",
+    source="Cables, Lamata & Verdegay (2016) — DOI 10.1016/j.ins.2015.12.011",
     input=DecisionInput(
-        alternatives=["A1", "A2", "A3", "A4"],
+        alternatives=["A1", "A2", "A3", "A4", "A5"],
         criteria=[
-            Criterion(name="Preço (R$ mil)", kind="cost", A=4.0, B=7.0, C=4.0, D=4.0),
-            Criterion(name="Desempenho (pts)", kind="benefit", A=70, B=100, C=100, D=100),
-            Criterion(name="Peso (kg)", kind="target", A=1.0, B=2.5, C=1.4, D=1.8),
-            Criterion(name="Autonomia (h)", kind="benefit", A=5, B=12, C=12, D=12),
+            Criterion(name="Critério 1 (faixa-alvo 30–35)", kind="target", A=23, B=60, C=30, D=35),
+            Criterion(name="Anos de experiência", kind="target", A=0, B=15, C=10, D=15),
+            Criterion(name="Critério 3 (minimizar)", kind="cost", A=0, B=10, C=0, D=0),
+            Criterion(name="Critério 4 (benefício 1–3)", kind="benefit", A=1, B=3, C=3, D=3),
+            Criterion(name="Critério 5 (benefício 1–3)", kind="benefit", A=1, B=3, C=3, D=3),
+            Criterion(name="Critério 6 (faixa-alvo 4–5)", kind="target", A=1, B=5, C=4, D=5),
         ],
-        weights=[0.20, 0.35, 0.20, 0.25],
+        weights=[0.2262, 0.2143, 0.1786, 0.1429, 0.119, 0.119],
         X=[
-            [4.5, 85, 1.3, 8],
-            [6.0, 92, 1.6, 10],
-            [5.0, 78, 2.1, 6],
-            [5.5, 88, 1.7, 9],
+            [30, 0, 2, 3, 3, 2],
+            [40, 9, 1, 3, 2, 2],
+            [25, 0, 3, 1, 3, 2],
+            [27, 0, 5, 3, 3, 1],
+            [45, 15, 2, 2, 3, 4],
         ],
     ),
 )
@@ -77,7 +86,7 @@ CASE_SUPPLIER = CaseDetail(
 
 
 _CASES: dict[str, CaseDetail] = {
-    "notebook": CASE_NOTEBOOK,
+    "article-replication": CASE_ARTICLE,
     "supplier": CASE_SUPPLIER,
 }
 

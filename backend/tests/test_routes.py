@@ -25,17 +25,17 @@ def test_list_cases_not_empty():
     assert isinstance(body, list)
     assert len(body) >= 1
     ids = {c["id"] for c in body}
-    assert "notebook" in ids
+    assert "article-replication" in ids
 
 
-def test_get_case_notebook():
-    r = client.get("/api/cases/notebook")
+def test_get_case_article_replication():
+    r = client.get("/api/cases/article-replication")
     assert r.status_code == 200
     body = r.json()
-    assert body["id"] == "notebook"
+    assert body["id"] == "article-replication"
     assert "input" in body
-    assert len(body["input"]["alternatives"]) == 4
-    assert len(body["input"]["criteria"]) == 4
+    assert len(body["input"]["alternatives"]) == 5
+    assert len(body["input"]["criteria"]) == 6
 
 
 def test_get_case_not_found():
@@ -43,26 +43,27 @@ def test_get_case_not_found():
     assert r.status_code == 404
 
 
-def test_solve_notebook_matches_expected():
-    case = cases.get_case("notebook")
+def test_solve_article_replication_matches_expected():
+    case = cases.get_case("article-replication")
     payload = case.input.model_dump()
     r = client.post("/api/rim/solve", json=payload)
     assert r.status_code == 200, r.text
     body = r.json()
 
-    # ranking ordenado por R desc; esperado: A2 > A4 > A1 > A3
+    # ranking ordenado por R desc; esperado (paper): A2 > A5 > A1 > A4 > A3
     ranking = body["ranking"]
-    assert [e["alternative"] for e in ranking] == ["A2", "A4", "A1", "A3"]
+    assert [e["alternative"] for e in ranking] == ["A2", "A5", "A1", "A4", "A3"]
 
     by_alt = {e["alternative"]: e for e in ranking}
-    assert abs(by_alt["A1"]["R"] - 0.5653) < 1e-4
-    assert abs(by_alt["A2"]["R"] - 0.6797) < 1e-4
-    assert abs(by_alt["A3"]["R"] - 0.3650) < 1e-4
-    assert abs(by_alt["A4"]["R"] - 0.6254) < 1e-4
+    assert abs(by_alt["A1"]["R"] - 0.5866) < 1e-4
+    assert abs(by_alt["A2"]["R"] - 0.7558) < 1e-4
+    assert abs(by_alt["A3"]["R"] - 0.3716) < 1e-4
+    assert abs(by_alt["A4"]["R"] - 0.4666) < 1e-4
+    assert abs(by_alt["A5"]["R"] - 0.7401) < 1e-4
 
 
 def test_sensitivity_returns_points_with_requested_size():
-    case = cases.get_case("notebook")
+    case = cases.get_case("article-replication")
     req = {
         "base": case.input.model_dump(),
         "criterion_index": 0,
@@ -78,7 +79,7 @@ def test_sensitivity_returns_points_with_requested_size():
     assert abs(body["points"][-1]["weight"] - 1.0) < 1e-9
     # cada ponto tem um ranking completo
     for pt in body["points"]:
-        assert len(pt["ranking"]) == 4
+        assert len(pt["ranking"]) == 5
 
 
 def test_solve_invalid_payload_returns_422():

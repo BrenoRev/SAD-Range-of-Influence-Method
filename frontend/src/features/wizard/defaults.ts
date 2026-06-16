@@ -8,7 +8,9 @@ export function defaultIdealForKind(
   if (kind === "benefit") return { C: B, D: B };
   if (kind === "cost") return { C: A, D: A };
   const span = B - A;
-  return { C: Number((A + 0.4 * span).toFixed(4)), D: Number((A + 0.6 * span).toFixed(4)) };
+  // Sem arredondamento: o paper calcula em precisão total; arredondar só no
+  // display (export.ts, tabelas, gráficos), nunca na entrada do cálculo.
+  return { C: A + 0.4 * span, D: A + 0.6 * span };
 }
 
 export function blankCriterion(): Criterion {
