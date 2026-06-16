@@ -5,12 +5,18 @@ from .schemas import CaseDetail, CaseSummary, Criterion, DecisionInput
 # TOPSIS, que só sabe lidar com benefício/custo puros.
 
 # Réplica fiel do exemplo numérico do artigo original do RIM (seleção de 1 entre
-# 5 candidatos a motorista, 6 critérios). Os números (X, weights, A/B/C/D) vêm da
-# implementação de referência do paper (pacote R MCDM::RIM) — NÃO são inventados.
-# Validado: ranking publicado A2 > A5 > A1 > A4 > A3 (ver tests/test_algorithm.py).
-# Nomes de C1 e C3–C6 são provisórios (descrevem só o papel matemático do
-# critério); apenas C2 ("Years of experience") consta do enunciado. Substituir
-# pelos nomes exatos do artigo quando o PDF confirmar.
+# 5 candidatos a motorista, 6 critérios). Os números (X, weights, A/B/C/D) vêm das
+# Tables 2-4 do artigo (idênticos ao pacote de referência MCDM::RIM) — NÃO são
+# inventados. Nomes de C1 e C3–C6 são provisórios (papel matemático do critério);
+# só C2 ("Years of experience") consta do enunciado.
+#
+# IMPORTANTE — divergência com o ranking IMPRESSO no paper:
+# Aplicando corretamente as equações do artigo (Step 5/6: I- = sqrt(Σ y'²)), o
+# ranking é A2 > A5 > A1 > A4 > A3 (R: 0.7558, 0.7401, 0.5866, 0.4666, 0.3716).
+# Esse é o resultado correto e o que o MCDM::RIM produz. A Table 6/11 do paper
+# imprime A1 > A2 > A5 > A4 > A3 porque omitiu a raiz quadrada do I- nas linhas
+# B/C/D/E (lá o I- é o Σ y'² sem raiz; só a linha A teve a raiz aplicada — a
+# própria Table 7 mostra A calculado certo). Mantemos a matemática correta.
 CASE_ARTICLE = CaseDetail(
     id="article-replication",
     title="Réplica do artigo (Cables et al. 2016)",
