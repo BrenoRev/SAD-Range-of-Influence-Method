@@ -52,8 +52,8 @@ def _distancias(Y_pond, w):
     # Distâncias euclidianas de cada alternativa aos dois pontos de referência.
     # Após normalizar, o máximo de cada coluna é 1, então o ideal ponderado é o
     # próprio vetor de pesos w; o anti-ideal é a origem (vetor 0).
-    I_plus = np.sqrt(((Y_pond - w) ** 2).sum(axis=1))
-    I_minus = np.sqrt((Y_pond**2).sum(axis=1))
+    I_plus = np.sqrt((w * (Y_pond - 1.0)**2).sum(axis=1))
+    I_minus = np.sqrt((w * (Y_pond - 0.0)**2).sum(axis=1))
     return I_plus, I_minus
 
 
@@ -77,6 +77,6 @@ def rim(X, t, s, w):
     I_plus, I_minus = _distancias(Y_pond, w)
 
     # R alto = perto do ideal e longe do anti-ideal; maior é melhor.
-    R = I_minus / (I_plus + I_minus)
+    R = I_plus / np.maximum((I_plus + I_minus), 1e-12)
 
     return R, I_plus, I_minus, Y, Y_pond
