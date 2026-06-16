@@ -18,7 +18,9 @@ export function CaseCard({ summary, onClick, disabled = false }: CaseCardProps) 
       disabled={disabled}
       className="group cursor-pointer rounded-xl border border-line bg-white p-4 text-left transition-colors hover:border-accent focus:outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30 disabled:cursor-not-allowed disabled:opacity-60"
     >
-      <Badge>{summary.source}</Badge>
+      <Badge className="h-auto max-w-full whitespace-normal py-1 text-left leading-tight">
+        {summary.source}
+      </Badge>
       <h4 className="mt-3 text-[15px] font-semibold text-ink">{summary.title}</h4>
       <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-muted">
         {summary.description}
