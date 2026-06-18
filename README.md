@@ -127,7 +127,7 @@ cd frontend
 pnpm build       # tsc -b --noEmit + vite build
 ```
 
-Não há suíte automatizada de UI; o critério de pronto é build verde + smoke test no navegador.
+Não há suíte automatizada de UI; o critério de pronto é build verde + smoke test no navegador
 
 ## Regenerar tipos do frontend
 
