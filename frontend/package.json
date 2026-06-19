@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b --noEmit && vite build",
+    "build": "tsc -b --noEmit && NODE_OPTIONS=--max-old-space-size=1024 vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx",
     "format": "prettier --write .",

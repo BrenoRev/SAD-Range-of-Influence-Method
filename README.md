@@ -148,7 +148,7 @@ cd backend && source .venv/bin/activate
 pytest -v
 ```
 
-`test_algorithm.py` valida o algoritmo contra o exemplo numérico do §5 do paper (notebook de Cables et al.) com tolerância `1e-4`. Esse teste é o canário do algoritmo — falhou, **não** faça release.
+`test_algorithm.py` valida o algoritmo contra o exemplo numérico do §5 do paper (réplica do artigo de Cables et al. — seleção de motorista) com tolerância `1e-4`. Esse teste é o canário do algoritmo — falhou, **não** faça release.
 
 ### Frontend
 
