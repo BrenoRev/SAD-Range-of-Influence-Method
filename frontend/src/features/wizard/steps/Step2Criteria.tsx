@@ -56,14 +56,14 @@ export function Step2Criteria() {
         <div className="space-y-6">
           <div>
             <div
-              className="overflow-x-auto rounded-xl border border-line bg-white"
+              className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:rounded-xl sm:border sm:border-line sm:bg-white sm:px-0"
               data-tour="crit-table"
             >
-              <table className="w-full table-fixed text-[14px]">
+              <table className="w-full min-w-[760px] text-[14px]">
                 <thead>
                   <tr className="border-b border-line text-left text-muted">
-                    <th className="w-[24%] px-4 py-3 font-medium">Critério</th>
-                    <th className="w-[16%] px-4 py-3 font-medium">
+                    <th className="min-w-[170px] px-4 py-3 font-medium">Critério</th>
+                    <th className="min-w-[130px] px-4 py-3 font-medium">
                       <span className="inline-flex items-center gap-1">
                         Tipo
                         <Tooltip content="Benefício = maior é melhor. Custo = menor é melhor. Alvo = um valor específico (entre C e D) é o melhor.">
@@ -87,7 +87,7 @@ export function Step2Criteria() {
                       title="Ideal até (D)"
                       hint="Extremo superior do intervalo ideal. Para Benefício, C = D = Máx."
                     />
-                    <th className="w-12" aria-label="Ações" />
+                    <th className="w-12 min-w-12" aria-label="Ações" />
                   </tr>
                 </thead>
                 <tbody>

@@ -61,13 +61,17 @@ export function MatrixInput({ alternatives, criteria, X, onCell, onCompute }: Ma
       </Banner>
 
       <Card className="overflow-x-auto" data-tour="matrix-table">
-        <table className="w-full text-[13px]">
+        <table className="w-full min-w-[520px] text-[13px]">
           <thead>
             <tr className="border-b border-line text-left text-muted">
-              <th className="px-3 py-2 font-medium">Alternativa</th>
+              <th className="sticky left-0 z-10 min-w-[120px] bg-white px-3 py-2 font-medium">
+                Alternativa
+              </th>
               {criteria.map((c, j) => (
-                <th key={j} className="px-3 py-2 font-medium">
-                  <div className="text-ink">{c.name}</div>
+                <th key={j} className="min-w-[110px] px-3 py-2 font-medium">
+                  <div className="truncate text-ink" title={c.name}>
+                    {c.name}
+                  </div>
                   <div className="mt-0.5 font-mono text-[11px] text-muted">
                     [{c.A} — {c.B}]
                   </div>
@@ -78,7 +82,9 @@ export function MatrixInput({ alternatives, criteria, X, onCell, onCompute }: Ma
           <tbody>
             {alternatives.map((alt, i) => (
               <tr key={i} className="border-b border-line last:border-b-0">
-                <td className="px-3 py-2 font-medium text-ink">{alt}</td>
+                <td className="sticky left-0 z-10 max-w-[160px] truncate bg-white px-3 py-2 font-medium text-ink">
+                  {alt}
+                </td>
                 {criteria.map((c, j) => {
                   const row = X[i];
                   const cellValue = row ? row[j] : Number.NaN;
@@ -94,6 +100,7 @@ export function MatrixInput({ alternatives, criteria, X, onCell, onCompute }: Ma
                         className="font-mono text-[13px]"
                         placeholder="—"
                         invalid={invalid}
+                        title={invalid ? `Fora da faixa [${c.A} — ${c.B}] do critério` : undefined}
                       />
                     </td>
                   );
