@@ -54,7 +54,7 @@ app/
 │   ├── algorithm.py         # f_rim + rim
 │   ├── schemas.py           # Pydantic v2: DecisionInput, DecisionResult, ...
 │   ├── solver.py            # camada fina: DecisionInput → rim() → DecisionResult
-│   └── cases.py             # casos pré-carregados (notebook, supplier)
+│   └── cases.py             # casos pré-carregados (article-replication, supplier)
 └── api/
     └── routes.py            # endpoints REST
 tests/
