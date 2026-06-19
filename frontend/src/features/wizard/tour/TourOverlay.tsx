@@ -29,6 +29,13 @@ function placePopover(
 ): { top: number; left: number } {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  // No mobile o popover vira uma "folha": rodapé por padrão, mas sobe para o
+  // topo quando a folha cobriria o alvo (ex.: alvo no fim da página).
+  if (vw < 640 && rect && placement !== "center") {
+    const sheetTop = vh - popH - EDGE;
+    if (rect.top + rect.height + GAP > sheetTop) return { top: EDGE, left: EDGE };
+    return { top: Math.max(EDGE, sheetTop), left: EDGE };
+  }
   if (!rect || placement === "center") {
     return {
       top: Math.max(EDGE, (vh - popH) / 2),
@@ -239,8 +246,9 @@ export function TourOverlay() {
         aria-modal="false"
         aria-label={current.title}
         className={cn(
-          "fixed z-50 max-w-[92vw] rounded-xl border border-line bg-white shadow-card transition-opacity duration-150",
-          big ? "w-[480px]" : "w-[340px]",
+          "fixed z-50 rounded-xl border border-line bg-white shadow-card transition-[top,left,opacity] duration-200 ease-out",
+          "w-[calc(100vw-16px)] sm:max-w-[92vw]",
+          big ? "sm:w-[480px]" : "sm:w-[340px]",
           ready ? "opacity-100" : "opacity-0",
         )}
         style={popStyle}

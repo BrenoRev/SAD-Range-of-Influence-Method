@@ -1,5 +1,7 @@
 import type { Criterion, CriterionKind } from "./schemas";
 
+export const NAME_MAX_LEN = 60;
+
 export function defaultIdealForKind(
   kind: CriterionKind,
   A: number,
@@ -29,10 +31,10 @@ export function critRowErrors(c: Criterion): Partial<Record<"A" | "B" | "C" | "D
     e.A = "Mín deve ser menor que Máx";
     e.B = e.A;
   }
-  if (C < A) e.C = "Deve ser ≥ Mín";
-  if (D > B) e.D = "Deve ser ≤ Máx";
+  if (C < A) e.C = `Ideal de (C) deve ser ≥ Mín (${A})`;
+  if (D > B) e.D = `Ideal até (D) deve ser ≤ Máx (${B})`;
   if (C > D) {
-    e.C = "Ideal de deve ser ≤ Ideal até";
+    e.C = "Ideal de (C) deve ser ≤ Ideal até (D)";
     e.D = e.C;
   }
   return e;

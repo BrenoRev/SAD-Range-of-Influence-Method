@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/Button";
 import { Tooltip } from "@/shared/components/ui/Tooltip";
 import { useWizard } from "../context";
 import { blankCriterion, step2Valid } from "../defaults";
-import { ColHead, CriterionRow } from "../components/CriterionRow";
+import { ColHead, CriterionCard, CriterionRow } from "../components/CriterionRow";
 import { CriteriaHelpCard } from "../components/CriteriaHelpCard";
 import { StepHeader } from "../components/StepHeader";
 import { WizardLayout } from "../components/WizardLayout";
@@ -54,16 +54,13 @@ export function Step2Criteria() {
         />
 
         <div className="space-y-6">
-          <div>
-            <div
-              className="overflow-x-auto rounded-xl border border-line bg-white"
-              data-tour="crit-table"
-            >
-              <table className="w-full table-fixed text-[14px]">
+          <div data-tour="crit-table">
+            <div className="hidden overflow-x-auto sm:block sm:rounded-xl sm:border sm:border-line sm:bg-white">
+              <table className="w-full min-w-[760px] text-[14px]">
                 <thead>
                   <tr className="border-b border-line text-left text-muted">
-                    <th className="w-[24%] px-4 py-3 font-medium">Critério</th>
-                    <th className="w-[16%] px-4 py-3 font-medium">
+                    <th className="min-w-[170px] px-4 py-3 font-medium">Critério</th>
+                    <th className="min-w-[130px] px-4 py-3 font-medium">
                       <span className="inline-flex items-center gap-1">
                         Tipo
                         <Tooltip content="Benefício = maior é melhor. Custo = menor é melhor. Alvo = um valor específico (entre C e D) é o melhor.">
@@ -87,7 +84,7 @@ export function Step2Criteria() {
                       title="Ideal até (D)"
                       hint="Extremo superior do intervalo ideal. Para Benefício, C = D = Máx."
                     />
-                    <th className="w-12" aria-label="Ações" />
+                    <th className="w-12 min-w-12" aria-label="Ações" />
                   </tr>
                 </thead>
                 <tbody>
@@ -105,6 +102,22 @@ export function Step2Criteria() {
                 </tbody>
               </table>
             </div>
+
+            <div className="space-y-3 sm:hidden">
+              {criteria.map((c, i) => (
+                <CriterionCard
+                  key={i}
+                  index={i}
+                  criterion={c}
+                  canRemove={criteria.length > 1}
+                  nameInvalid={showErrors && !c.name.trim()}
+                  onUpdate={(patch) => update(i, patch)}
+                  onRemove={() => remove(i)}
+                />
+              ))}
+            </div>
+          </div>
+          <div>
             <div className="mt-3" data-tour="crit-add">
               <Button variant="ghost" onClick={add}>
                 <Plus size={14} strokeWidth={1.5} /> Adicionar critério

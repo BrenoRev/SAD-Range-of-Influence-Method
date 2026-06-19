@@ -28,7 +28,7 @@ export function HelpButton({
         className={className}
         aria-label="Abrir ajuda"
       >
-        <HelpCircle size={14} strokeWidth={1.5} /> {label}
+        <HelpCircle size={14} strokeWidth={1.5} /> <span className="hidden sm:inline">{label}</span>
       </Button>
       <Dialog
         open={open}

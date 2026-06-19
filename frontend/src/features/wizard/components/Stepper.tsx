@@ -28,6 +28,7 @@ export function Stepper({ steps, current, maxReached, onJump }: StepperProps) {
                 disabled={!reachable}
                 onClick={() => reachable && onJump(s.i)}
                 aria-label={`Etapa ${s.i}: ${s.name}`}
+                aria-current={status === "current" ? "step" : undefined}
                 className={cn(
                   "grid h-6 w-6 shrink-0 place-items-center rounded-full text-[12px] font-medium transition-colors",
                   status === "done" && "bg-accent text-white",

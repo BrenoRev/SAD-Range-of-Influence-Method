@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/shared/components/ui/Toast";
+import { Button } from "@/shared/components/ui/Button";
+import { Dialog } from "@/shared/components/ui/Dialog";
 import { HelpButton } from "@/shared/components/ui/HelpButton";
 import { logger } from "@/shared/lib/logger";
 import { useWizard } from "@/features/wizard/context";
@@ -17,11 +19,22 @@ export function Home() {
   const { data: cases, loading, error } = useCases();
   const { reset, loadFromCase, hasSavedSnapshot, resumeSaved } = useWizard();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
-  const onStart = () => {
+  const doStart = () => {
+    setConfirmReset(false);
     reset();
     navigate("/wizard/1");
     toast("Nova decisão iniciada", "info");
+  };
+
+  // Reset sobrescreve o snapshot salvo: confirma antes de descartar.
+  const onStart = () => {
+    if (hasSavedSnapshot) {
+      setConfirmReset(true);
+      return;
+    }
+    doStart();
   };
 
   const onCase = async (id: string) => {
@@ -142,6 +155,26 @@ export function Home() {
         </div>
 
       </div>
+
+      <Dialog
+        open={confirmReset}
+        onClose={() => setConfirmReset(false)}
+        title="Começar uma nova decisão?"
+        maxWidth="max-w-md"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setConfirmReset(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={doStart}>Descartar e começar</Button>
+          </div>
+        }
+      >
+        <p className="text-[13px] leading-relaxed text-muted">
+          Você tem uma decisão salva. Iniciar uma nova vai substituí-la — esta ação não pode ser
+          desfeita. Para continuar de onde parou, use “Retomar decisão”.
+        </p>
+      </Dialog>
     </div>
   );
 }
