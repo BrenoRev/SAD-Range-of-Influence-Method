@@ -7,6 +7,14 @@ Monorepo com dois apps:
 - **`backend/`** — API REST em FastAPI que expõe o algoritmo RIM e casos pré-carregados.
 - **`frontend/`** — SPA em React + Vite que guia o usuário por um wizard de 4 etapas.
 
+## Ambiente de produção
+
+| Recurso  | URL                                  |
+| -------- | ------------------------------------ |
+| Frontend | https://rim.brenodev.software/       |
+| Backend  | https://rim.brenodev.software/api    |
+| Docs (Swagger) | https://rim.brenodev.software/docs |
+
 ## Stack
 
 | Camada    | Tecnologias                                                                     |
@@ -17,9 +25,16 @@ Monorepo com dois apps:
 
 ## Pré-requisitos
 
-- Python **3.11+** (o script `dev.sh` usa `python3.13`, ajustar se necessário)
-- Node.js **20+** e **pnpm**
-- Porta **8000** livre (backend) e **5173** livre (frontend)
+- **Python 3.11+** — o `./dev.sh` chama `python3.13` explicitamente. Sem ele, use o caminho manual (que usa o `python3` padrão) ou instale o Python 3.13.
+- **Node.js 20+** e **pnpm**. Se ainda não tiver o pnpm: `corepack enable` (já vem com o Node 20+) ou `npm i -g pnpm@10.14.0` (versão usada na CI).
+- Porta **8000** livre (backend) e **5173** livre (frontend).
+
+## Clonar
+
+```bash
+git clone https://github.com/BrenoRev/SAD-Range-of-Influence-Method.git
+cd SAD-Range-of-Influence-Method
+```
 
 ## Subir em um comando
 
@@ -28,6 +43,8 @@ Na raiz do projeto:
 ```bash
 ./dev.sh
 ```
+
+> Se aparecer `python3.13: command not found`, instale o Python 3.13 ou use a seção [Subir manualmente](#subir-manualmente) (que usa o `python3` padrão). Mais em [Solução de problemas](#solução-de-problemas).
 
 Esse script:
 
@@ -40,19 +57,21 @@ Esse script:
 
 ## Subir manualmente
 
-### Backend
+**Use dois terminais.** O `uvicorn --reload` ocupa o terminal enquanto roda — deixe o backend no **terminal 1** e suba o frontend no **terminal 2**.
+
+### Backend (terminal 1)
 
 ```bash
 cd backend
-python3.11 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv          # precisa ser Python 3.11+
+source .venv/bin/activate      # Windows (PowerShell): .venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
 uvicorn app.main:app --reload --port 8000
 ```
 
-Verificação rápida: `curl http://localhost:8000/health` deve responder `{"status":"ok"}`.
+Verificação rápida (em outro terminal): `curl http://localhost:8000/health` deve responder `{"status":"ok"}`.
 
-### Frontend
+### Frontend (terminal 2)
 
 ```bash
 cd frontend
@@ -60,7 +79,18 @@ pnpm install
 pnpm dev
 ```
 
-Abrir http://localhost:5173. O Vite faz proxy de `/api/*` para `localhost:8000`, então o backend precisa estar de pé.
+Abrir http://localhost:5173 — você deve ver a Home com os cards dos casos pré-carregados. O Vite faz proxy de `/api/*` para `localhost:8000`, então o backend precisa estar de pé.
+
+## Solução de problemas
+
+| Sintoma | Causa provável → correção |
+| ------- | ------------------------- |
+| `python3.13: command not found` ao rodar `./dev.sh` | O script fixa o Python 3.13. Instale-o ou use [Subir manualmente](#subir-manualmente), que usa o `python3` padrão (3.11+). |
+| `pnpm: command not found` | Habilite o pnpm: `corepack enable` (vem com o Node 20+) ou `npm i -g pnpm@10.14.0`. |
+| Porta **8000** ou **5173** já em uso | Mate o processo que a ocupa (`lsof -ti:8000 \| xargs kill`) ou libere a porta antes de subir. |
+| Frontend abre mas fica sem dados / erro de rede | O backend não está de pé. Suba o `uvicorn` primeiro — o proxy do Vite aponta para `:8000`. |
+| `pnpm run generate-types` falha | O backend precisa estar rodando em `:8000` (o comando lê `/openapi.json`). |
+| **Windows:** `./dev.sh` não roda | É um script bash. Rode via **WSL** ou **Git Bash**, ou suba os dois serviços manualmente (seção acima). |
 
 ## Estrutura
 

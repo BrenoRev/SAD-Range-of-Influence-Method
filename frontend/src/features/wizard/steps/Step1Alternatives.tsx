@@ -5,7 +5,7 @@ import { Banner } from "@/shared/components/ui/Banner";
 import { Button } from "@/shared/components/ui/Button";
 import { Input } from "@/shared/components/ui/Input";
 import { useWizard } from "../context";
-import { step1Valid } from "../defaults";
+import { step1Valid, NAME_MAX_LEN } from "../defaults";
 import { StepHeader } from "../components/StepHeader";
 import { WizardLayout } from "../components/WizardLayout";
 
@@ -31,6 +31,8 @@ export function Step1Alternatives() {
   const dupIndexes = findDuplicateIndexes(alternatives);
   const namedCount = alternatives.filter((a) => a.trim()).length;
   const showErrors = errorTick > 0;
+  const lastValue = alternatives[alternatives.length - 1] ?? "";
+  const canAdd = alternatives.length === 0 || lastValue.trim() !== "";
 
   useEffect(() => {
     if (errorTick === 0) return;
@@ -47,7 +49,16 @@ export function Step1Alternatives() {
     setAlternatives(next);
   };
 
-  const add = () => setAlternatives([...alternatives, ""]);
+  const add = () => {
+    if (!canAdd) return;
+    setAlternatives([...alternatives, ""]);
+  };
+
+  const proceed = () => {
+    const cleaned = alternatives.map((a) => a.trim()).filter(Boolean);
+    if (cleaned.length !== alternatives.length) setAlternatives(cleaned);
+    navigate("/wizard/2");
+  };
 
   const remove = (i: number) => {
     if (alternatives.length <= 1) return;
@@ -71,7 +82,7 @@ export function Step1Alternatives() {
       step={1}
       canContinue={validation.ok}
       blockingReason={validation.reason}
-      onNext={() => navigate("/wizard/2")}
+      onNext={proceed}
     >
       <div>
         <StepHeader
@@ -144,6 +155,7 @@ export function Step1Alternatives() {
                     <Input
                       value={name}
                       placeholder={`Nome da opção ${i + 1}`}
+                      maxLength={NAME_MAX_LEN}
                       onChange={(e) => update(i, e.target.value)}
                       invalid={invalid}
                     />
@@ -171,10 +183,15 @@ export function Step1Alternatives() {
           })}
         </ol>
 
-        <div className="mt-3" data-tour="alts-add">
-          <Button variant="ghost" onClick={add}>
+        <div className="mt-3 flex items-center gap-3" data-tour="alts-add">
+          <Button variant="ghost" onClick={add} disabled={!canAdd}>
             <Plus size={14} strokeWidth={1.5} /> Adicionar alternativa
           </Button>
+          {!canAdd ? (
+            <span className="text-[12px] text-muted">
+              Preencha a última alternativa para adicionar outra.
+            </span>
+          ) : null}
         </div>
 
         <div className="mt-10 flex items-center gap-2 text-[12px] text-muted">

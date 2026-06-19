@@ -4,7 +4,7 @@ import { Input } from "@/shared/components/ui/Input";
 import { Select } from "@/shared/components/ui/Select";
 import { Tooltip } from "@/shared/components/ui/Tooltip";
 import { cn } from "@/shared/lib/utils";
-import { defaultIdealForKind, critRowErrors } from "../defaults";
+import { defaultIdealForKind, critRowErrors, NAME_MAX_LEN } from "../defaults";
 import type { Criterion, CriterionKind } from "../schemas";
 
 type CriterionRowProps = {
@@ -105,6 +105,7 @@ export function CriterionRow({
         <Input
           value={criterion.name}
           placeholder={`ex.: Critério ${index + 1}`}
+          maxLength={NAME_MAX_LEN}
           onChange={(e) => onUpdate({ name: e.target.value })}
           invalid={nameInvalid}
         />
@@ -159,7 +160,7 @@ export function CriterionRow({
 
 export function ColHead({ title, hint }: { title: string; hint: string }) {
   return (
-    <th className="px-4 py-3 font-medium">
+    <th className="min-w-[104px] px-4 py-3 font-medium">
       <span className="inline-flex items-center gap-1 whitespace-nowrap">
         <span className="font-mono text-[12px]">{title}</span>
         <Tooltip content={hint}>
