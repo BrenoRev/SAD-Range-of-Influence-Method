@@ -37,8 +37,16 @@ export function Step4Result() {
   const [recalcSpin, setRecalcSpin] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const notifyRef = useRef(false);
 
   const normalizedWeights = useMemo(() => normalizeWeights(weights), [weights]);
+
+  // Identidade estável: sem isto, cada render recriaria o objeto e dispararia o
+  // /rim/sensitivity do painel "E se?" a cada passo do slider.
+  const baseInput = useMemo<DecisionInput>(
+    () => ({ alternatives, criteria, weights: normalizedWeights, X }),
+    [alternatives, criteria, normalizedWeights, X],
+  );
 
   const xIsValid = useMemo(() => {
     if (X.length !== alternatives.length) return false;
@@ -99,6 +107,20 @@ export function Step4Result() {
     triggerSolve();
   }, [normalizedWeights, hasComputed, triggerSolve]);
 
+  // Toast de sucesso só depois que o cálculo realmente retorna (evita avisar
+  // "calculada" e logo em seguida mostrar erro).
+  useEffect(() => {
+    if (!notifyRef.current) return;
+    if (error) {
+      notifyRef.current = false;
+      return;
+    }
+    if (result) {
+      notifyRef.current = false;
+      toast("Classificação calculada", "ok");
+    }
+  }, [result, error, toast]);
+
   const onCompute = () => {
     const altCheck = step1Valid(alternatives);
     if (!altCheck.ok) {
@@ -117,8 +139,8 @@ export function Step4Result() {
       return;
     }
     setHasComputed(true);
+    notifyRef.current = true;
     triggerSolve(true);
-    toast("Classificação calculada", "ok");
   };
 
   const onChangeSensitivityWeight = (i: number, raw: number) => {
@@ -182,12 +204,7 @@ export function Step4Result() {
         criteria={criteria}
         weights={weights}
         recalcSpin={recalcSpin}
-        baseInput={{
-          alternatives,
-          criteria,
-          weights: normalizedWeights,
-          X,
-        }}
+        baseInput={baseInput}
         onChangeSensitivityWeight={onChangeSensitivityWeight}
       />
     </WizardLayout>

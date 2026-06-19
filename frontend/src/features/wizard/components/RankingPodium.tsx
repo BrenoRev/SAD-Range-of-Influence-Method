@@ -16,7 +16,7 @@ function PodiumCard({ entry }: { entry: RankingEntry }) {
   return (
     <Card
       className={cn(
-        "relative flex flex-col gap-3 p-5 transition-colors",
+        "relative flex min-w-0 flex-col gap-3 p-5 transition-colors",
         isFirst ? "border-l-4 border-l-ok pl-5" : "",
       )}
     >
@@ -35,7 +35,10 @@ function PodiumCard({ entry }: { entry: RankingEntry }) {
         )}
         <span className="font-mono text-[10px] uppercase tracking-wider text-muted">R</span>
       </div>
-      <div className="truncate text-[15px] font-semibold leading-snug text-ink">
+      <div
+        className="truncate text-[15px] font-semibold leading-snug text-ink"
+        title={entry.alternative}
+      >
         {entry.alternative}
       </div>
       <div
@@ -62,16 +65,16 @@ function PodiumCard({ entry }: { entry: RankingEntry }) {
 
 export function RankingPodium({ ranking }: RankingPodiumProps) {
   const top3 = ranking.slice(0, 3);
-  const order: number[] = [];
-  if (top3[1]) order.push(1);
-  if (top3[0]) order.push(0);
-  if (top3[2]) order.push(2);
+  // 3+ colocados em pódio (2º, 1º, 3º); com 2 ou 1, ordem normal e sem coluna vazia.
+  const order = top3.length >= 3 ? [1, 0, 2] : top3.map((_, i) => i);
+  const cols =
+    top3.length >= 3 ? "sm:grid-cols-3" : top3.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1";
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className={cn("grid grid-cols-1 gap-4", cols)}>
       {order.map((slotIdx) => {
         const entry = top3[slotIdx];
-        if (!entry) return <div key={slotIdx} />;
+        if (!entry) return null;
         return <PodiumCard key={entry.alternative} entry={entry} />;
       })}
     </div>

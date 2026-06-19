@@ -94,3 +94,10 @@ def test_solve_invalid_payload_returns_422():
     }
     r = client.post("/api/rim/solve", json=payload)
     assert r.status_code == 422
+
+
+def test_sensitivity_criterion_index_out_of_range_returns_422():
+    case = cases.get_case("article-replication")
+    req = {"base": case.input.model_dump(), "criterion_index": 99, "points": 11}
+    r = client.post("/api/rim/sensitivity", json=req)
+    assert r.status_code == 422

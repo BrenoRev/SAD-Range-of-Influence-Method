@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Loader, Sliders } from "lucide-react";
+import { Banner } from "@/shared/components/ui/Banner";
 import { Card } from "@/shared/components/ui/Card";
 import { Select } from "@/shared/components/ui/Select";
 import { Slider } from "@/shared/components/ui/Slider";
@@ -133,18 +134,22 @@ function WhatIfPanel({
   baseInput: DecisionInput;
 }) {
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
-  const { data, run, loading } = useSensitivity();
+  const { data, run, loading, error } = useSensitivity();
   const abortRef = useRef<AbortController | null>(null);
 
+  // Debounce: arrastar os pesos muda baseInput muitas vezes; sem isto seria uma
+  // requisição /rim/sensitivity por passo. Coalesce em uma só após parar.
   useEffect(() => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    void run(
-      { base: baseInput, criterion_index: selectedIdx, points: 11 },
-      controller.signal,
-    );
-    return () => controller.abort();
+    const t = setTimeout(() => {
+      void run({ base: baseInput, criterion_index: selectedIdx, points: 11 }, controller.signal);
+    }, 300);
+    return () => {
+      clearTimeout(t);
+      controller.abort();
+    };
   }, [run, baseInput, selectedIdx]);
 
   const W = 280;
@@ -183,7 +188,11 @@ function WhatIfPanel({
         }))}
       />
       <div className="mt-3 overflow-x-auto">
-        {loading && !data ? (
+        {error && !loading ? (
+          <Banner tone="danger" title="Erro ao calcular sensibilidade">
+            {error.message}
+          </Banner>
+        ) : loading && !data ? (
           <div className="py-8 text-center text-[12px] text-muted">Calculando…</div>
         ) : (
           <svg width={W} height={H} className="block">

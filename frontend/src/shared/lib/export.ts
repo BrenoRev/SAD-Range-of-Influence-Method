@@ -16,9 +16,14 @@ function download(content: BlobPart, filename: string, mime: string): void {
   URL.revokeObjectURL(url);
 }
 
+// Previne CSV injection: célula iniciada por = + - @ TAB é interpretada como
+// fórmula pelo Excel/LibreOffice. Prefixar com aspa simples a torna texto.
+function sanitizeCsvCell(value: string): string {
+  return /^[=+\-@\t]/.test(value) ? `'${value}` : value;
+}
+
 export function exportCSV(input: DecisionInput, result: DecisionResult): void {
-  const criteriaNames = input.criteria.map((c) => c.name);
-  const rankByAlt = new Map(result.ranking.map((r) => [r.alternative, r]));
+  const criteriaNames = input.criteria.map((c) => sanitizeCsvCell(c.name));
 
   const rows = result.ranking.map((r) => {
     const altIndex = input.alternatives.indexOf(r.alternative);
@@ -26,20 +31,19 @@ export function exportCSV(input: DecisionInput, result: DecisionResult): void {
     const yObj: Record<string, number | string> = {};
     criteriaNames.forEach((name, j) => {
       const v = yRow[j];
-      yObj[`Y[${name}]`] = v !== undefined ? Number(v.toFixed(6)) : "";
+      yObj[`Y[${name}]`] = v !== undefined ? Number(v.toFixed(2)) : "";
     });
     return {
       rank: r.rank,
-      alternative: r.alternative,
-      R: Number(r.R.toFixed(6)),
-      "I+": Number(r.I_plus.toFixed(6)),
-      "I-": Number(r.I_minus.toFixed(6)),
+      alternative: sanitizeCsvCell(r.alternative),
+      R: Number(r.R.toFixed(4)),
+      "I+": Number(r.I_plus.toFixed(4)),
+      "I-": Number(r.I_minus.toFixed(4)),
       ...yObj,
     };
   });
 
-  void rankByAlt;
-  const csv = Papa.unparse(rows);
+  const csv = Papa.unparse(rows, { quotes: true });
   download(csv, "rim-classificacao.csv", "text/csv;charset=utf-8");
 }
 

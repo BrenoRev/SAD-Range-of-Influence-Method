@@ -1,8 +1,19 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
 CriterionKind = Literal["benefit", "cost", "target"]
+
+# Rejeita inf/nan, que senão se propagam como nan no ranking em vez de 422.
+Finite = Annotated[float, Field(allow_inf_nan=False)]
+
+# Limites superiores anti-DoS.
+MAX_ALTERNATIVES = 1000
+MAX_CRITERIA = 200
+MAX_NAME_LEN = 256
+
+Name = Annotated[str, Field(min_length=1, max_length=MAX_NAME_LEN)]
+Row = Annotated[list[Finite], Field(max_length=MAX_CRITERIA)]
 
 
 class HealthResponse(BaseModel):
@@ -10,28 +21,28 @@ class HealthResponse(BaseModel):
 
 
 class Criterion(BaseModel):
-    name: str = Field(min_length=1)
+    name: Name
     kind: CriterionKind
-    A: float
-    B: float
-    C: float
-    D: float
+    A: Finite
+    B: Finite
+    C: Finite
+    D: Finite
 
     @model_validator(mode="after")
     def check_order(self):
-        # A ≤ C ≤ D ≤ B garante que o intervalo ideal [C, D] (a faixa-alvo do
-        # decisor) está contido no domínio [A, B] do critério. Sem essa ordem o
-        # método não tem como medir distância à faixa ideal.
+        # A < B (domínio não-degenerado) e ideal [C, D] contido em [A, B].
+        if not (self.A < self.B):
+            raise ValueError(f"Critério '{self.name}': A deve ser estritamente menor que B")
         if not (self.A <= self.C <= self.D <= self.B):
             raise ValueError(f"Critério '{self.name}': é necessário A ≤ C ≤ D ≤ B")
         return self
 
 
 class DecisionInput(BaseModel):
-    alternatives: list[str] = Field(min_length=2)
-    criteria: list[Criterion] = Field(min_length=2)
-    weights: list[float]
-    X: list[list[float]]
+    alternatives: list[Name] = Field(min_length=2, max_length=MAX_ALTERNATIVES)
+    criteria: list[Criterion] = Field(min_length=2, max_length=MAX_CRITERIA)
+    weights: list[Finite] = Field(max_length=MAX_CRITERIA)
+    X: list[Row] = Field(min_length=2, max_length=MAX_ALTERNATIVES)
 
     @model_validator(mode="after")
     def check_dimensions(self):
@@ -113,6 +124,16 @@ class SensitivityRequest(BaseModel):
     base: DecisionInput
     criterion_index: int
     points: int = Field(default=11, ge=3, le=51)
+
+    @model_validator(mode="after")
+    def check_criterion_index(self):
+        # Índice fora do range vira 422 aqui, não 500 no solver.
+        n = len(self.base.criteria)
+        if not (0 <= self.criterion_index < n):
+            raise ValueError(
+                f"criterion_index deve estar em [0, {n - 1}], recebido {self.criterion_index}"
+            )
+        return self
 
 
 class SensitivityPoint(BaseModel):

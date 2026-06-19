@@ -89,6 +89,8 @@ export function WizardProvider({ children }: { children: ReactNode }) {
   const [hasSavedSnapshot, setHasSavedSnapshot] = useState(false);
   const [errorTick, setErrorTick] = useState(0);
   const firstRender = useRef(true);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const revealErrors = useCallback(() => setErrorTick((t) => t + 1), []);
   const clearErrors = useCallback(() => setErrorTick(0), []);
@@ -120,6 +122,24 @@ export function WizardProvider({ children }: { children: ReactNode }) {
     }, 350);
     return () => clearTimeout(t);
   }, [state]);
+
+  // Grava na hora ao sair/recarregar, cobrindo edições feitas dentro da janela
+  // de debounce de 350ms que ainda não foram persistidas.
+  useEffect(() => {
+    const flush = () => {
+      const s = stateRef.current;
+      writeJson(STORAGE_KEY, {
+        alternatives: s.alternatives,
+        criteria: s.criteria,
+        weights: s.weights,
+        X: s.X,
+        hasComputed: s.hasComputed,
+        maxReached: s.maxReached,
+      });
+    };
+    window.addEventListener("pagehide", flush);
+    return () => window.removeEventListener("pagehide", flush);
+  }, []);
 
   const setAlternatives = useCallback((alternatives: string[]) => {
     setState((s) => {
@@ -186,17 +206,36 @@ export function WizardProvider({ children }: { children: ReactNode }) {
     if (!parsed || !Array.isArray(parsed.alternatives) || parsed.alternatives.length < 2) {
       return false;
     }
-    const X = Array.isArray(parsed.X)
+    const alternatives = parsed.alternatives.slice();
+    const criteria =
+      Array.isArray(parsed.criteria) && parsed.criteria.length
+        ? parsed.criteria.map((c) => ({ ...c }))
+        : [blankCriterion(), blankCriterion()];
+    const cols = criteria.length;
+
+    // Reconcilia weights e X ao formato atual (storage pode estar desatualizado).
+    const weights = Array.isArray(parsed.weights) ? parsed.weights.slice(0, cols) : [];
+    while (weights.length < cols) weights.push(50);
+    const rawX = Array.isArray(parsed.X)
       ? parsed.X.map((row) => (Array.isArray(row) ? row.map(safeNumber) : []))
       : [];
+    const X = reshapeX(rawX, alternatives.length, cols);
+
+    // Resultado é sempre recalculado: só confia em hasComputed se a matriz estiver
+    // completa e dentro do domínio de cada critério.
+    const xComplete = X.every((row) =>
+      row.every((v, j) => {
+        const c = criteria[j];
+        return c && Number.isFinite(v) && v >= c.A && v <= c.B;
+      }),
+    );
+
     setState({
-      alternatives: parsed.alternatives.slice(),
-      criteria: Array.isArray(parsed.criteria)
-        ? parsed.criteria.map((c) => ({ ...c }))
-        : [blankCriterion()],
-      weights: Array.isArray(parsed.weights) ? parsed.weights.slice() : [50],
+      alternatives,
+      criteria,
+      weights,
       X,
-      hasComputed: Boolean(parsed.hasComputed),
+      hasComputed: Boolean(parsed.hasComputed) && xComplete,
       maxReached: typeof parsed.maxReached === "number" ? parsed.maxReached : 1,
     });
     return true;

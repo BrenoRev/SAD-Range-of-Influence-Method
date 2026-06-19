@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/Button";
 import { Tooltip } from "@/shared/components/ui/Tooltip";
 import { useWizard } from "../context";
 import { blankCriterion, step2Valid } from "../defaults";
-import { ColHead, CriterionRow } from "../components/CriterionRow";
+import { ColHead, CriterionCard, CriterionRow } from "../components/CriterionRow";
 import { CriteriaHelpCard } from "../components/CriteriaHelpCard";
 import { StepHeader } from "../components/StepHeader";
 import { WizardLayout } from "../components/WizardLayout";
@@ -54,11 +54,8 @@ export function Step2Criteria() {
         />
 
         <div className="space-y-6">
-          <div>
-            <div
-              className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:rounded-xl sm:border sm:border-line sm:bg-white sm:px-0"
-              data-tour="crit-table"
-            >
+          <div data-tour="crit-table">
+            <div className="hidden overflow-x-auto sm:block sm:rounded-xl sm:border sm:border-line sm:bg-white">
               <table className="w-full min-w-[760px] text-[14px]">
                 <thead>
                   <tr className="border-b border-line text-left text-muted">
@@ -105,6 +102,22 @@ export function Step2Criteria() {
                 </tbody>
               </table>
             </div>
+
+            <div className="space-y-3 sm:hidden">
+              {criteria.map((c, i) => (
+                <CriterionCard
+                  key={i}
+                  index={i}
+                  criterion={c}
+                  canRemove={criteria.length > 1}
+                  nameInvalid={showErrors && !c.name.trim()}
+                  onUpdate={(patch) => update(i, patch)}
+                  onRemove={() => remove(i)}
+                />
+              ))}
+            </div>
+          </div>
+          <div>
             <div className="mt-3" data-tour="crit-add">
               <Button variant="ghost" onClick={add}>
                 <Plus size={14} strokeWidth={1.5} /> Adicionar critério

@@ -12,7 +12,7 @@ export function TourButton() {
       aria-label="Instruções de navegação"
       title="Instruções de navegação"
     >
-      <Compass size={14} strokeWidth={1.5} /> Guia
+      <Compass size={14} strokeWidth={1.5} /> <span className="hidden sm:inline">Guia</span>
     </Button>
   );
 }

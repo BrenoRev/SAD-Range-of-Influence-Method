@@ -25,7 +25,12 @@ export function Tooltip({ children, content }: TooltipProps) {
       Math.max(r.left + r.width / 2, margin + half),
       window.innerWidth - margin - half,
     );
-    const placement: Pos["placement"] = r.top < 80 ? "bottom" : "top";
+    // Fica em cima se couber, senão embaixo (evita corte nas bordas da viewport).
+    const est = 64;
+    const spaceAbove = r.top;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const placement: Pos["placement"] =
+      spaceAbove >= est || spaceAbove >= spaceBelow ? "top" : "bottom";
     setPos({ top: placement === "top" ? r.top : r.bottom, left, placement });
   }, []);
 
@@ -70,9 +75,7 @@ export function Tooltip({ children, content }: TooltipProps) {
       onPointerLeave={(e) => {
         if (e.pointerType === "mouse") hide();
       }}
-      onFocus={() => {
-        if (lastPointer.current !== "touch") show();
-      }}
+      onFocus={() => show()}
       onBlur={hide}
       onClick={() => {
         if (lastPointer.current === "touch") setOpen((v) => !v);

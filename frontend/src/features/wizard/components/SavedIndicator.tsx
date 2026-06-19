@@ -10,12 +10,12 @@ export function SavedIndicator({ saved }: SavedIndicatorProps) {
       {saved ? (
         <>
           <Check size={14} strokeWidth={1.5} className="text-ok" />
-          <span>Salvo</span>
+          <span className="hidden sm:inline">Salvo</span>
         </>
       ) : (
         <>
           <Loader size={12} strokeWidth={1.5} className="animate-spin text-muted" />
-          <span>Salvando…</span>
+          <span className="hidden sm:inline">Salvando…</span>
         </>
       )}
     </div>

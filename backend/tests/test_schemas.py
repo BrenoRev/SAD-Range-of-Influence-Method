@@ -76,6 +76,31 @@ def test_X_wrong_shape_fails():
         )
 
 
+def test_criterion_A_equals_B_fails():
+    with pytest.raises(ValidationError):
+        Criterion(name="X", kind="benefit", A=5.0, B=5.0, C=5.0, D=5.0)
+
+
+def test_weights_nan_fails():
+    with pytest.raises(ValidationError):
+        DecisionInput(
+            alternatives=["A1", "A2"],
+            criteria=_valid_criteria(),
+            weights=[float("nan"), 0.5],
+            X=[[5.0, 1.5], [6.0, 1.7]],
+        )
+
+
+def test_X_infinity_fails():
+    with pytest.raises(ValidationError):
+        DecisionInput(
+            alternatives=["A1", "A2"],
+            criteria=_valid_criteria(),
+            weights=[0.5, 0.5],
+            X=[[float("inf"), 1.5], [6.0, 1.7]],
+        )
+
+
 def test_valid_input_passes():
     inp = DecisionInput(
         alternatives=["A1", "A2"],
