@@ -42,10 +42,13 @@ export function WeightsStackBar({ criteria, normalizedPcts }: WeightsStackBarPro
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-muted">
         {criteria.map((c, i) => {
           const s = shade(i);
+          const label = c.name || `Critério ${i + 1}`;
           return (
-            <span key={i} className="inline-flex items-center gap-1.5">
-              <span className={`inline-block h-2 w-2 rounded-sm ${s.bg}`} aria-hidden />
-              {c.name || `Critério ${i + 1}`}
+            <span key={i} className="inline-flex max-w-full items-center gap-1.5">
+              <span className={`inline-block h-2 w-2 shrink-0 rounded-sm ${s.bg}`} aria-hidden />
+              <span className="min-w-0 truncate" title={label}>
+                {label}
+              </span>
             </span>
           );
         })}

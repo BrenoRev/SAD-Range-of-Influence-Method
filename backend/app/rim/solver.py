@@ -87,9 +87,7 @@ def _pesos_redistribuidos(base_w: np.ndarray, j: int, wj: float) -> np.ndarray:
 
 
 def sensitivity(req: SensitivityRequest) -> SensitivityResult:
-    n = len(req.base.criteria)
     j = req.criterion_index
-    assert 0 <= j < n
     base_w = np.array(req.base.weights, dtype=float)
 
     points = []

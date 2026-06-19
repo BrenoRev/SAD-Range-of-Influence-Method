@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { Check, Info, X } from "lucide-react";
+import { AlertCircle, Check, Info, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 type Tone = "info" | "ok" | "danger";
@@ -46,6 +46,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             >
               {t.tone === "ok" ? (
                 <Check size={14} strokeWidth={1.5} />
+              ) : t.tone === "danger" ? (
+                <AlertCircle size={14} strokeWidth={1.5} />
               ) : (
                 <Info size={14} strokeWidth={1.5} />
               )}

@@ -67,31 +67,31 @@ export function WizardLayout({
   return (
     <div className="flex min-h-screen flex-col bg-page">
       <header className="sticky top-0 z-30 border-b border-line bg-page/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex items-center gap-3 hover:opacity-80"
+            className="flex min-w-0 items-center gap-3 hover:opacity-80"
             aria-label="Ir para o início"
           >
             <Wordmark />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <SavedIndicator saved={saved} />
-            <span className="mx-1 h-4 w-px bg-line" aria-hidden />
+            <span className="mx-1 hidden h-4 w-px bg-line sm:block" aria-hidden />
             <TourButton />
             <HelpButton />
           </div>
         </div>
-        <div className="mx-auto max-w-3xl px-6 pb-5 pt-1">
+        <div className="mx-auto max-w-3xl px-4 pb-5 pt-1 sm:px-6">
           <Stepper steps={STEPS} current={step} maxReached={maxReached} onJump={onJump} />
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 overflow-x-clip">
         <div
           className={cn(
-            "mx-auto grid w-full gap-8 px-6 py-10",
+            "mx-auto grid w-full min-w-0 gap-8 px-6 py-10",
             step === 1 ? "max-w-3xl" : "max-w-6xl",
           )}
         >
@@ -100,7 +100,12 @@ export function WizardLayout({
       </main>
 
       <footer className="sticky bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-6 py-3">
+        <div
+          className={cn(
+            "mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6",
+            step === 1 ? "max-w-3xl" : "max-w-6xl",
+          )}
+        >
           <Button variant="ghost" onClick={onBack}>
             <ArrowLeft size={14} strokeWidth={1.5} /> {step === 1 ? "Voltar ao início" : "Voltar"}
           </Button>
@@ -132,7 +137,12 @@ export function WizardLayout({
           </div>
         </div>
         {step < 4 && !canContinue && blockingReason ? (
-          <div className="mx-auto -mt-1 flex max-w-3xl items-center gap-1.5 px-6 pb-3 text-[12px] text-danger sm:hidden">
+          <div
+            className={cn(
+              "mx-auto -mt-1 flex items-center gap-1.5 px-4 pb-3 text-[12px] text-danger sm:hidden",
+              step === 1 ? "max-w-3xl" : "max-w-6xl",
+            )}
+          >
             <AlertCircle size={13} strokeWidth={1.5} /> {blockingReason}
           </div>
         ) : null}
